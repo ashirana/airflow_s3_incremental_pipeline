@@ -1,0 +1,14 @@
+# Virtual environment
+airflow_s3/
+venv/
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+
+# Env files
+.env
+
+# OS files
+.DS_Store

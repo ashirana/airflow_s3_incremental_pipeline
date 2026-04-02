@@ -15,3 +15,5 @@ def extract():
     key = f"raw/api/{today}/data.json"
     upload_file_to_s3(file_path, bucket, key)
     return key
+if __name__ == "__main__":
+    extract()

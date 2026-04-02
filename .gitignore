@@ -1,14 +1,21 @@
-# Virtual environment
-airflow_s3/
+# Virtual environments
 venv/
+airflow_s3/
+
+# Python cache
 __pycache__/
 *.pyc
 
 # Logs
 logs/
+*.log
 
-# Env files
+# Airflow
+airflow-webserver.pid
+
+# Environment variables
 .env
 
 # OS files
 .DS_Store
+Thumbs.db

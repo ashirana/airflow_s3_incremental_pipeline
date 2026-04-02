@@ -19,3 +19,6 @@ airflow-webserver.pid
 # OS files
 .DS_Store
 Thumbs.db
+
+aws/
+awscliv2.zip

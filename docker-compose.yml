@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: airflow
     ports:
       - "5432:5432"
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
 
   airflow-init:
     image: apache/airflow:2.8.1
@@ -18,21 +20,29 @@ services:
     env_file:
       - .env
     environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False
-      - AIRFLOW__WEBSERVER__SECRET_KEY=my_super_secret_key
-      - PYTHONPATH=/opt/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_super_secret_key
+      PYTHONPATH: /opt/airflow
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+      - ./utils:/opt/airflow/utils
+      - ./config:/opt/airflow/config
+      - ./logs:/opt/airflow/logs
     entrypoint: >
       /bin/bash -c "
-      airflow db init &&
+      mkdir -p /opt/airflow/logs &&
+      chmod -R 777 /opt/airflow/logs &&
+      airflow db migrate &&
       airflow users create
         --username airflow
         --password airflow
         --firstname Ashish
         --lastname User
         --role Admin
-        --email test@example.com
+        --email test@example.com || true
       "
 
   airflow_webserver:
@@ -43,15 +53,17 @@ services:
     env_file:
       - .env
     environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False
-      - AIRFLOW__WEBSERVER__SECRET_KEY=my_super_secret_key
-      - PYTHONPATH=/opt/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_super_secret_key
+      PYTHONPATH: /opt/airflow
     volumes:
       - ./dags:/opt/airflow/dags
       - ./scripts:/opt/airflow/scripts
       - ./utils:/opt/airflow/utils
+      - ./config:/opt/airflow/config
+      - ./logs:/opt/airflow/logs
     ports:
       - "8080:8080"
     command: webserver
@@ -60,16 +72,21 @@ services:
     image: apache/airflow:2.8.1
     container_name: airflow_scheduler
     depends_on:
-      - airflow_webserver
+      - airflow_webserver   # ✅ FIXED HERE
     env_file:
       - .env
     environment:
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
-      - AIRFLOW__WEBSERVER__SECRET_KEY=my_super_secret_key
-      - PYTHONPATH=/opt/airflow
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_super_secret_key
+      PYTHONPATH: /opt/airflow
     volumes:
       - ./dags:/opt/airflow/dags
       - ./scripts:/opt/airflow/scripts
       - ./utils:/opt/airflow/utils
+      - ./config:/opt/airflow/config
+      - ./logs:/opt/airflow/logs
     command: scheduler
+
+volumes:
+  postgres-db-volume:
